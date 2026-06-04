@@ -79,3 +79,23 @@ export function buildSaju({ year, month, day, hour = 12, minute = 0, hourUnknown
     시간모름: hourUnknown,
   };
 }
+
+// ── 궁합 분석 (두 사주 간 합/충/오행 상보) ──
+const STEM_COMBO    = {'甲':'己','己':'甲','乙':'庚','庚':'乙','丙':'辛','辛':'丙','丁':'壬','壬':'丁','戊':'癸','癸':'戊'};
+const BRANCH_YUKHAP = {'子':'丑','丑':'子','寅':'亥','亥':'寅','卯':'戌','戌':'卯','辰':'酉','酉':'辰','巳':'申','申':'巳','午':'未','未':'午'};
+const BRANCH_CHUNG  = {'子':'午','午':'子','丑':'未','未':'丑','寅':'申','申':'寅','卯':'酉','酉':'卯','辰':'戌','戌':'辰','巳':'亥','亥':'巳'};
+
+export function pairAnalysis(a, b){
+  const aS=a.일간.hanja, bS=b.일간.hanja, aB=a.일지.hanja, bB=b.일지.hanja;
+  const h=[];
+  if(STEM_COMBO[aS]===bS) h.push(`일간 천간합(${STEM_KR[aS]}+${STEM_KR[bS]}): 서로 끌리고 묶이는 강한 인연 신호`);
+  if(BRANCH_YUKHAP[aB]===bB) h.push(`일지 육합(${BRANCH_KR[aB]}+${BRANCH_KR[bB]}): 곁에 있으면 편하고 합이 잘 맞음`);
+  if(BRANCH_CHUNG[aB]===bB) h.push(`일지 충(${BRANCH_KR[aB]}↔${BRANCH_KR[bB]}): 자극과 끌림이 공존, 티격태격해도 지루할 틈 없음`);
+  const els=['목','화','토','금','수'];
+  const bFillsA = els.filter(e=>a.오행분포[e]===0 && b.오행분포[e]>=2);
+  const aFillsB = els.filter(e=>b.오행분포[e]===0 && a.오행분포[e]>=2);
+  if(bFillsA.length) h.push(`상대가 본인에게 없는 ${bFillsA.join('·')} 기운을 채워줌(보완 관계)`);
+  if(aFillsB.length) h.push(`본인이 상대에게 없는 ${aFillsB.join('·')} 기운을 채워줌(보완 관계)`);
+  if(!h.length) h.push('뚜렷한 합도 충도 없음: 담백하고 무난한 사이, 서로 노력으로 맞춰가는 관계');
+  return h.join('\n');
+}
