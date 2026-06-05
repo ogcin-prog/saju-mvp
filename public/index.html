@@ -3,63 +3,69 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>오늘의 사주 한 잔</title>
+<title>야장하기 좋은데이 사주풀이</title>
 <style>
   :root{
-    --green:#1f6b46; --green-d:#155236; --bg:#f5f3ec; --card:#fffdf8;
-    --ink:#23241f; --sub:#6f7268; --line:#e6e2d6; --gold:#b08a3e; --pink:#c65b6e;
+    --navy:#003087; --navy-d:#001f57; --blue:#004ea8;
+    --bg:#eef1f7; --card:#ffffff; --ink:#1c1c1a; --sub:#5f6b7a; --line:#dce2ec; --pink:#c65b6e;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   body{margin:0; background:var(--bg); color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",sans-serif;
     line-height:1.65; padding:0 0 48px;}
   .wrap{max-width:440px; margin:0 auto; padding:0 18px;}
-  header{text-align:center; padding:34px 0 18px;}
-  header .han{font-size:13px; letter-spacing:6px; color:var(--gold); font-weight:600;}
-  header h1{font-size:25px; margin:6px 0 4px; font-weight:800;}
+  header{text-align:center; padding:30px 0 16px;}
+  .badge{display:inline-block; background:var(--navy); color:#fff; font-size:12.5px; font-weight:700;
+    letter-spacing:.5px; padding:7px 14px; border-radius:999px; margin-bottom:13px;}
+  header h1{font-size:26px; margin:2px 0 6px; font-weight:800; color:var(--navy);}
   header p{margin:0; color:var(--sub); font-size:13.5px;}
   .card{background:var(--card); border:1px solid var(--line); border-radius:16px;
-    padding:20px; margin:14px 0; box-shadow:0 1px 2px rgba(0,0,0,.03);}
+    padding:20px; margin:14px 0; box-shadow:0 1px 3px rgba(0,32,87,.05);}
   label{display:block; font-size:13px; font-weight:700; margin:0 0 6px; color:var(--ink);}
   .field{margin-bottom:15px;}
   input,select{width:100%; padding:13px 12px; font-size:16px; border:1px solid var(--line);
     border-radius:10px; background:#fff; color:var(--ink); appearance:none;}
-  input:focus,select:focus{outline:none; border-color:var(--green);}
+  input:focus,select:focus{outline:none; border-color:var(--navy);}
   .seg{display:flex; gap:8px; flex-wrap:wrap;}
   .seg button{flex:1; min-width:60px; padding:11px 0; border:1px solid var(--line); background:#fff;
     border-radius:10px; font-size:14px; color:var(--sub); cursor:pointer; font-weight:600;}
-  .seg button.on{border-color:var(--green); background:var(--green); color:#fff;}
+  .seg button.on{border-color:var(--navy); background:var(--navy); color:#fff;}
   .btn{width:100%; padding:15px; font-size:16px; font-weight:800; color:#fff;
-    background:var(--green); border:none; border-radius:12px; cursor:pointer;}
-  .btn:active{background:var(--green-d);}
+    background:var(--navy); border:none; border-radius:12px; cursor:pointer;}
+  .btn:active{background:var(--navy-d);}
   .btn:disabled{opacity:.55;}
   .hint{font-size:12px; color:var(--sub); margin:6px 2px 0;}
 
   #result{display:none;}
-  .saju-card{background:linear-gradient(180deg,#fffdf8,#faf6ec); border:1px solid var(--line);
+  .saju-card{background:linear-gradient(180deg,#ffffff,#eaf0fa); border:1px solid var(--line);
     border-radius:16px; padding:22px 18px; text-align:center;}
   .saju-card .date{font-size:12px; color:var(--sub); letter-spacing:1px;}
   .pillars{display:flex; justify-content:center; gap:10px; margin:14px 0 6px;}
   .pillar{flex:1; max-width:74px;}
-  .pillar .hanja{font-size:30px; font-weight:800; color:var(--green-d);
+  .pillar .hanja{font-size:30px; font-weight:800; color:var(--navy);
     font-family:"Apple SD Gothic Neo",serif; line-height:1.1;}
   .pillar .role{font-size:11px; color:var(--sub); margin-top:5px;}
   .pillar .kr{font-size:12px; color:var(--ink);}
-  .ilgan{margin-top:10px; font-size:13px; color:var(--green-d); font-weight:700;}
+  .ilgan{margin-top:10px; font-size:13px; color:var(--navy); font-weight:700;}
   .ohaeng{font-size:12px; color:var(--sub); margin-top:4px;}
   .desc{font-size:15px; margin:16px 2px 4px; text-align:left;}
   .desc p, .box p{margin:0 0 11px;} .desc p:last-child, .box p:last-child{margin:0;}
+  .desc .rec, .box .rec{font-weight:800; color:var(--navy); background:#eaf0fb;
+    border-radius:10px; padding:12px 13px; margin-top:13px;}
+  .box.g .rec{color:var(--pink); background:#fdedf0;}
+  .desc strong, .box strong{font-weight:800; color:var(--navy);}
+  .box.g strong{color:var(--pink);}
 
   h2.sec{font-size:14px; color:var(--sub); margin:26px 2px 10px; font-weight:700;}
   .wide{width:100%; padding:15px; border-radius:12px; font-size:15.5px; font-weight:800; cursor:pointer; margin-bottom:10px;}
-  .wide.month{background:var(--green-d); color:#fff; border:none;}
-  .wide.month.on{box-shadow:0 0 0 3px rgba(21,82,54,.2);}
+  .wide.month{background:var(--navy); color:#fff; border:none;}
+  .wide.month.on{box-shadow:0 0 0 3px rgba(0,48,135,.22);}
   .wide.gung{background:#fff; color:var(--pink); border:1.5px solid var(--pink);}
   .wide.gung.on{background:var(--pink); color:#fff;}
   .cats{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:10px;}
   .cat{padding:14px 0; border:1px solid var(--line); background:var(--card); border-radius:12px;
-    font-size:14.5px; font-weight:700; color:var(--green-d); cursor:pointer; text-align:center;}
-  .cat.on{background:var(--green); color:#fff; border-color:var(--green);}
+    font-size:14.5px; font-weight:700; color:var(--navy); cursor:pointer; text-align:center;}
+  .cat.on{background:var(--navy); color:#fff; border-color:var(--navy);}
 
   .partner{display:none; background:#fff7f8; border:1px solid #f0d9dd; border-radius:14px; padding:16px; margin-bottom:10px;}
   .partner.show{display:block;}
@@ -68,10 +74,10 @@
   .partner .seg button.on{background:var(--pink); border-color:var(--pink);}
 
   .answer{margin-top:14px;}
-  .answer .box{background:var(--card); border:1px solid var(--line); border-left:3px solid var(--green);
+  .answer .box{background:var(--card); border:1px solid var(--line); border-left:3px solid var(--navy);
     border-radius:12px; padding:16px; font-size:15px;}
   .answer .box.g{border-left-color:var(--pink);}
-  .answer .t{font-weight:800; color:var(--green-d); margin-bottom:9px; font-size:14px;}
+  .answer .t{font-weight:800; color:var(--navy); margin-bottom:9px; font-size:14px;}
   .answer .box.g .t{color:var(--pink);}
   .pair-head{font-size:13px; color:var(--ink); background:#fff; border:1px solid var(--line);
     border-radius:8px; padding:8px 10px; margin-bottom:11px; text-align:center; font-weight:700;}
@@ -82,15 +88,16 @@
   .reset{display:block; margin:22px auto 0; background:none; border:none; color:var(--sub);
     font-size:13px; text-decoration:underline; cursor:pointer;}
   footer{text-align:center; color:var(--sub); font-size:11.5px; margin-top:30px; line-height:1.7;}
+  footer b{color:var(--navy); font-weight:700;}
   .err{color:#b0413e; font-size:13.5px; padding:10px 2px;}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="han">四 柱 八 字</div>
+    <div class="badge">🍶 야장하기 좋은데이 사주풀이</div>
     <h1>오늘의 사주 한 잔</h1>
-    <p>생년월일을 넣으면, 진짜 사주로 풀어드려요</p>
+    <p>생년월일만 넣으면, 진짜 사주로 풀어드려요</p>
   </header>
 
   <div class="card" id="form">
@@ -159,7 +166,8 @@
   </div>
 
   <footer>
-    재미로 보는 콘텐츠예요 · 만 19세 이상<br>사주팔자는 한국천문연구원 만세력 기준으로 계산됩니다
+    재미로 보는 콘텐츠예요 · 만 19세 이상<br>
+    <b>무학 좋은데이</b>와 함께 · 사주팔자는 한국천문연구원 만세력 기준으로 계산됩니다
   </footer>
 </div>
 
@@ -191,7 +199,14 @@
 
   function dots(){ return '<span class="loading">풀이 중<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span>'; }
   function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
-  function paras(text){ return text.split(/\n{2,}/).map(p=>`<p>${esc(p).replace(/\n/g,'<br>')}</p>`).join(''); }
+  function fmt(p){ return esc(p).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'); }
+  function paras(text){
+    const arr = text.split(/\n{2,}/);
+    return arr.map((p,i)=>{
+      const rec = (arr.length>1 && i===arr.length-1) ? ' class="rec"' : '';
+      return `<p${rec}>${fmt(p)}</p>`;
+    }).join('');
+  }
 
   async function callAPI(extra){
     const res = await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -228,7 +243,7 @@
     document.getElementById('rPillars').innerHTML = order.map(k=>{
       const p=s.pillars[k];
       return p ? `<div class="pillar"><div class="hanja">${p.hanja}</div><div class="role">${k}</div><div class="kr">${p.hangul}</div></div>`
-               : `<div class="pillar"><div class="hanja" style="color:#cfc9b8">—</div><div class="role">${k}</div><div class="kr">시간 모름</div></div>`;
+               : `<div class="pillar"><div class="hanja" style="color:#c3cde0">—</div><div class="role">${k}</div><div class="kr">시간 모름</div></div>`;
     }).join('');
     document.getElementById('rIlgan').textContent = `일간 ${s.일간.hangul}${s.일간.hanja} · ${s.일간.오행}(${s.일간.음양})의 기운`;
     document.getElementById('rOhaeng').textContent = `오행 ▸ `+Object.entries(s.오행분포).map(([k,v])=>`${k} ${v}`).join('  ');
