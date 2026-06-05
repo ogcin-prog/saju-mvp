@@ -9,6 +9,34 @@ import { buildSaju, pairAnalysis } from './_saju.js';
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 let CACHED_MODEL = null;
 
+// ── 사용량 카운터 (Vercel KV / Upstash REST 사용, 미연결 시 자동 skip) ──
+function kvCreds() {
+  return {
+    url: process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL,
+    tok: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN,
+  };
+}
+async function redisPipe(cmds) {
+  const { url, tok } = kvCreds();
+  if (!url || !tok) return null;
+  try {
+    const r = await fetch(`${url}/pipeline`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(cmds),
+    });
+    return await r.json();
+  } catch { return null; }
+}
+async function countHit(section) {
+  // profile = '사주 조회 시작', 그 외 = 항목별 클릭 + 총 풀이수
+  if (section === 'profile') return redisPipe([['HINCRBY', 'saju:counts', 'starts', 1]]);
+  return redisPipe([
+    ['HINCRBY', 'saju:counts', section, 1],
+    ['HINCRBY', 'saju:counts', 'readings', 1],
+  ]);
+}
+
 async function pickModel(key) {
   if (CACHED_MODEL) return CACHED_MODEL;
   try {
@@ -54,18 +82,18 @@ function sajuContext(s, who = '') {
 }
 
 // ── 행사 제공 음료 11종 (오행/분위기 태그) ──
-const DRINKS = `[행사 제공 음료 — 마무리에 딱 하나 골라 추천]
-· 핑크블러셔 (좋은데이+암바사+홍초) — 화/火·따뜻함·핑크빛, 새콤달콤 크리미한 디저트 술
-· 사랑과 재채기 (좋은데이+후추 한 꼬집) — 금/金·알싸함, 정신 번쩍 드는 반전 한 잔
-· 탕비실 녹차 (좋은데이+녹차티백) — 목/木·은은함·초록, 깔끔하고 차분한 녹차향
-· 나야 참기름 (좋은데이+참기름+소금) — 토/土·고소함·노랑, 한국인 DNA 자극 은근 중독
-· 전남친 한입소맥 (좋은데이+블루문) — 관계·섞임, 부드럽고 깔끔한 한입 소맥
-· 윤정아 (좋은데이+암바사+뿌요소다) — 즐거움·추억·톡톡, 추억의 소다맛(팝핑캔디 추가 가능)
-· 요즘 애들 레시피 (톡소다 사과+코코팜 포도) — 가벼움·달콤·MZ, 달달한 청량 탄산
-· 블루문 왁뿌 (블루문 3단계 코스) — 변화·도전·시트러스, 한 캔으로 세 가지 맛
-· 좋은데이(플레인) — 금·수·깔끔, 72시간 산소숙성 부드러운 소주 원조
-· 블루문(플레인) — 수/水·청량·파랑, 시트러스 향과 부드러운 거품 맥주
-· 톡소다 사과(플레인) — 수·목·청량·사과, 달콤한 사과향에 톡 쏘는 탄산`;
+const DRINKS = `[행사 제공 음료 11종 — 이 풀이 '내용'에 가장 어울리는 딱 하나를 골라 마무리에 추천]
+· 핑크블러셔 (좋은데이+암바사+홍초) — 핑크빛 새콤달콤 디저트 술. 설렘·연애·따뜻한 감정, 화(火) 기운 보충.
+· 사랑과 재채기 (좋은데이+후추) — 알싸하게 정신 번쩍. 답답함을 깨거나 과감한 결단·변화·자극이 필요할 때.
+· 탕비실 녹차 (좋은데이+녹차티백) — 은은하고 차분한 녹차향. 마음 가라앉히고 정리·휴식·번아웃 회복이 필요할 때.
+· 나야 참기름 (좋은데이+참기름+소금) — 고소하고 든든. 실속·재물·안정, 현실감각이 키워드일 때.
+· 전남친 한입소맥 (좋은데이+블루문) — 부드럽게 섞이는 한입 소맥. 사람·인연·관계가 주제일 때(특히 둘이서).
+· 윤정아 (좋은데이+암바사+뿌요소다) — 톡톡 튀는 추억의 소다맛. 즐겁게 놀고 텐션 올릴 때, 친구·추억.
+· 요즘 애들 레시피 (톡소다 사과+코코팜 포도) — 가볍고 달달한 청량 탄산. 부담 없이 가볍게, 젊고 산뜻한 기운.
+· 블루문 왁뿌 (블루문 3단계 코스) — 한 캔으로 세 가지 맛. 새 도전·변화·기회·커리어, 단계적으로 성장할 때.
+· 좋은데이(플레인) — 72시간 산소숙성, 깔끔 담백. 기본에 충실·정직·군더더기 없이 갈 때.
+· 블루문(플레인) — 시트러스 향 청량한 맥주. 답답함을 시원하게 풀고 리프레시가 필요할 때.
+· 톡소다 사과(플레인) — 달콤한 사과향에 톡 쏘는 탄산. 기분 전환·가벼운 활력이 필요할 때.`;
 
 const SYSTEM = `너는 한국 명리학(사주팔자)에 빠삭한 사주 상담가야. 술자리/행사에서 사람들한테 재미로 봐주는 콘텐츠를 쓴다.
 
@@ -80,9 +108,11 @@ const SYSTEM = `너는 한국 명리학(사주팔자)에 빠삭한 사주 상담
 - 모바일에서 서서 읽어. 문단당 2~3문장으로 짧게.
 
 [마무리 — 무학 음료 추천]
-- 맨 마지막 문단은 아래 음료 중 딱 하나를 골라 추천하는 한두 문장으로 끝내.
-- 기준: 이 사람에게 부족한 오행을 채워주거나, 이 운세의 분위기와 어울리는 술로.
-- 음료의 '실제 이름'을 쓰고 키치하고 재밌게. 술을 강요하는 게 아니라 '오늘 이 자리에 어울리는 한 잔'을 권하는 느낌으로.`;
+- 맨 마지막 문단은 위 음료 11종 중 '딱 하나'를 골라 추천하는 한두 문장으로 끝내.
+- 고르는 기준(가장 중요): 방금 네가 쓴 이 풀이의 '상황·분위기·예측 내용'에 가장 잘 어울리는 술로 골라. (예: 도전·기회·커리어 얘기 → 블루문 왁뿌, 돈·실속 → 나야 참기름, 사람·관계 → 전남친 한입소맥, 휴식·정리·스트레스 → 탕비실 녹차, 즐겁게 놀기 → 윤정아.)
+- 부족한 오행을 채우는 건 여러 근거 중 '하나'일 뿐이야. 매번 같은 술(특히 핑크블러셔)로만 귀결되지 않게, 풀이의 종류와 내용에 맞춰 다양하게 골라.
+- 음료의 '실제 이름'을 쓰고 키치하고 재밌게. 술을 강요하지 말고 '오늘 이 자리에 어울리는 한 잔' 느낌으로.
+- ★중요 형식: 이 '음료를 추천하는 문장'은 반드시 양쪽을 별표 두 개로 감싸서 **이렇게** 굵게 표시해. (추천 문장 전체를 **로 감싼다. 다른 일반 문장에는 별표를 쓰지 마.)`;
 
 const SECTION_PROMPT = {
   profile: `이 사람의 '기본 성향'을 풀어줘. 일간이 어떤 캐릭터인지 → 오행 균형으로 본 강점과 은근한 약점 → 사람들이 느끼는 첫인상·매력 순서로. 마지막 문단은 음료 추천.`,
@@ -186,6 +216,8 @@ export default async function handler(req, res) {
     const data = await gRes.json();
     const text = (data?.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('').trim();
     console.log(`[reading] section=${section} model=${model} len=${text.length}`);
+
+    await countHit(section).catch(() => {}); // 집계 (실패해도 무시)
 
     const out = {
       section,
